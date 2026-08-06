@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { protectedProcedure, router } from "../_core/trpc";
 import { getDb } from "../db";
-import { bensMoveisTable, bensImoveis, almoxItens, estoque, auditLogs, cessoesImoveis, pendenciasImoveis } from "../../drizzle/schema";
+import { bensMoveisTable, bensImoveis, auditLogs, cessoesImoveis, pendenciasImoveis } from "../../drizzle/schema";
 import { eq, and, sql, desc, gte } from "drizzle-orm";
 
 export const dashboardRouter = router({
@@ -58,9 +58,18 @@ export const dashboardRouter = router({
     // Pendências de regularização abertas
     const [pend] = await db.select({ count: sql<number>`COUNT(*)` }).from(pendenciasImoveis).where(eq(pendenciasImoveis.situacao, "aberta"));
     if ((pend?.count ?? 0) > 0) alertas.push({ tipo: "pendencia_dominial", mensagem: `${pend?.count} pendência(s) de regularização dominial em aberto`, severidade: "media" });
-    // Bens sem localização
-    const [semLocal] = await db.select({ count: sql<number>`COUNT(*)` }).from(bensMoveisTable).where(and(eq(bensMoveisTable.situacao, "ativo"), sql`localizacaoUaId IS NULL`));
+    // 3. Bens sem localização
+    const [semLocal] = await db.select({ count: sql<number>`COUNT(*)` })
+      .from(bensMoveisTable).where(and(eq(bensMoveisTable.situacao, "ativo"), sql`localizacaoUaId IS NULL`));
     if ((semLocal?.count ?? 0) > 0) alertas.push({ tipo: "sem_localizacao", mensagem: `${semLocal?.count} bem(ns) ativo(s) sem localização cadastrada`, severidade: "baixa" });
+    // 4. Imóveis com situação dominial irregular
+    const [imovIrreg] = await db.select({ count: sql<number>`COUNT(*)` })
+      .from(bensImoveis).where(eq(bensImoveis.situacaoDominial, "irregular"));
+    if ((imovIrreg?.count ?? 0) > 0) alertas.push({ tipo: "imovel_irregular", mensagem: `${imovIrreg?.count} imóvel(is) com situação dominial irregular`, severidade: "alta" });
+    // 5. Bens em manutenção há mais de 30 dias
+    const [manLonga] = await db.select({ count: sql<number>`COUNT(*)` })
+      .from(bensMoveisTable).where(and(eq(bensMoveisTable.situacao, "em_manutencao"), sql`updatedAt < DATE_SUB(NOW(), INTERVAL 30 DAY)`));
+    if ((manLonga?.count ?? 0) > 0) alertas.push({ tipo: "manutencao_longa", mensagem: `${manLonga?.count} bem(ns) em manutenção há mais de 30 dias`, severidade: "media" });
     return alertas;
   }),
 

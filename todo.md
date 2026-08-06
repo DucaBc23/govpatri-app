@@ -105,3 +105,14 @@
 - [x] Router: criar inventário, registrar coleta, gerar divergências
 - [x] Página: módulo de Inventário com QR Code imprimível por bem
 - [x] Página: tela de coleta de inventário (scan/manual)
+
+## Sprint 3 — Dashboard Real, Detalhes do Bem e Relatórios SEPAT
+- [x] Backend: corrigir router dashboard.kpis para contar bens reais, valor patrimonial e ISP
+- [x] Backend: corrigir router dashboard.isp para calcular com dados reais
+- [x] Backend: corrigir router dashboard.alertas para detectar bens sem inventário e imóveis irregulares
+- [x] Frontend: Dashboard exibindo KPIs reais após popular dados
+- [x] Backend: router bensMoveis.getById com histórico de movimentações e depreciação acumulada
+- [x] Frontend: página DetalhesBem com abas (dados, movimentações, depreciação, QR Code)
+- [x] Backend: router relatorios com queries reais para cada relatório SEPAT
+- [x] Backend: geração de PDF para cada relatório SEPAT (pdfkit)
+- [x] Frontend: botões de download de PDF funcionando na página de Relatórios SEPAT

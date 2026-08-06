@@ -18,6 +18,7 @@ import Workflow from "./pages/Workflow";
 import Relatorios from "./pages/Relatorios";
 import AuditTrail from "./pages/AuditTrail";
 import Inventario from "./pages/Inventario";
+import DetalhesBem from "./pages/DetalhesBem";
 
 function AppRoutes() {
   return (
@@ -37,6 +38,7 @@ function AppRoutes() {
         <Route path="/relatorios" component={Relatorios} />
         <Route path="/auditoria" component={AuditTrail} />
         <Route path="/inventario" component={Inventario} />
+        <Route path="/bens-moveis/:id" component={DetalhesBem} />
         <Route component={NotFound} />
       </Switch>
     </GovLayout>

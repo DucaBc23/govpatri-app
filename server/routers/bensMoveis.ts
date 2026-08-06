@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { protectedProcedure, router } from "../_core/trpc";
 import { getDb, getProximoTombamento } from "../db";
-import { bensMoveisTable, classesBens, movimentacoesBens, termosResponsabilidade, termosItens, manutencoes } from "../../drizzle/schema";
+import { bensMoveisTable, classesBens, movimentacoesBens, termosResponsabilidade, termosItens, manutencoes, depreciacaoMensal } from "../../drizzle/schema";
 import { eq, desc, and } from "drizzle-orm";
 import { registrarAuditoria } from "../audit";
 
@@ -55,8 +55,46 @@ export const bensMoveisTrpcRouter = router({
   getById: protectedProcedure.input(z.object({ id: z.number() })).query(async ({ input }) => {
     const db = await getDb();
     if (!db) return null;
-    const result = await db.select().from(bensMoveisTable).where(eq(bensMoveisTable.id, input.id)).limit(1);
-    return result[0] ?? null;
+    const [bem] = await db.select({
+      id: bensMoveisTable.id,
+      numeroTombamento: bensMoveisTable.numeroTombamento,
+      descricao: bensMoveisTable.descricao,
+      marca: bensMoveisTable.marca,
+      modelo: bensMoveisTable.modelo,
+      numeroSerie: bensMoveisTable.numeroSerie,
+      anoFabricacao: bensMoveisTable.anoFabricacao,
+      dataAquisicao: bensMoveisTable.dataAquisicao,
+      valorAquisicao: bensMoveisTable.valorAquisicao,
+      valorAtual: bensMoveisTable.valorAtual,
+      situacao: bensMoveisTable.situacao,
+      localizacaoUaId: bensMoveisTable.localizacaoUaId,
+      responsavelId: bensMoveisTable.responsavelId,
+      observacoes: bensMoveisTable.observacoes,
+      ugId: bensMoveisTable.ugId,
+      classeId: bensMoveisTable.classeId,
+      createdAt: bensMoveisTable.createdAt,
+      classeNome: classesBens.nome,
+      taxaDepreciacaoAnual: classesBens.taxaDepreciacaoAnual,
+      vidaUtilAnos: classesBens.vidaUtilAnos,
+    }).from(bensMoveisTable)
+      .leftJoin(classesBens, eq(bensMoveisTable.classeId, classesBens.id))
+      .where(eq(bensMoveisTable.id, input.id)).limit(1);
+    if (!bem) return null;
+    const movs = await db.select().from(movimentacoesBens)
+      .where(eq(movimentacoesBens.bemId, input.id))
+      .orderBy(desc(movimentacoesBens.createdAt)).limit(50);
+    const depreciacoes = await db.select().from(depreciacaoMensal)
+      .where(eq(depreciacaoMensal.bemId, input.id))
+      .orderBy(depreciacaoMensal.periodoId);
+    const totalDepreciado = depreciacoes.reduce((acc, d) => acc + parseFloat(String(d.valorDepreciado)), 0);
+    const ultima = depreciacoes[depreciacoes.length - 1];
+    return {
+      ...bem,
+      movimentacoes: movs,
+      depreciacoes,
+      totalDepreciado: totalDepreciado.toFixed(2),
+      valorResidual: ultima ? String(ultima.valorResidual) : String(bem.valorAtual ?? bem.valorAquisicao),
+    };
   }),
 
   create: protectedProcedure.input(bemSchema).mutation(async ({ input, ctx }) => {

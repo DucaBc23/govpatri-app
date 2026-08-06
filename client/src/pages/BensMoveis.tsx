@@ -8,7 +8,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, FileText } from "lucide-react";
+import { Plus, FileText, Eye } from "lucide-react";
+import { useLocation } from "wouter";
 import { toast } from "sonner";
 
 function downloadPdf(base64: string, filename: string) {
@@ -27,6 +28,7 @@ const situacaoColor: Record<string, string> = {
 };
 
 export default function BensMoveis() {
+  const [, navigate] = useLocation();
   const { data: bens = [], refetch } = trpc.bensMoveis.list.useQuery();
   const { data: classes = [] } = trpc.bensMoveis.classes.list.useQuery();
   const { data: ugs = [] } = trpc.transversal.ugs.list.useQuery();
@@ -86,6 +88,9 @@ export default function BensMoveis() {
                 <TableCell>
                   <Button size="sm" variant="ghost" onClick={() => termoMut.mutate({ bemId: b.id })} disabled={termoMut.isPending}>
                     <FileText size={14} className="mr-1" />Termo
+                  </Button>
+                  <Button size="sm" variant="ghost" onClick={() => navigate(`/bens-moveis/${b.id}`)}>
+                    <Eye size={14} className="mr-1" />Detalhes
                   </Button>
                 </TableCell>
               </TableRow>
