@@ -1,28 +1,45 @@
 import { COOKIE_NAME } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
-import { publicProcedure, router } from "./_core/trpc";
+import { protectedProcedure, publicProcedure, router } from "./_core/trpc";
+import { transversalRouter } from "./routers/transversal";
+import { usuariosRouter } from "./routers/usuarios";
+import { bensMoveisTrpcRouter } from "./routers/bensMoveis";
+import { almoxarifadoRouter } from "./routers/almoxarifado";
+import { bensImoveisRouter } from "./routers/bensImoveis";
+import { contabilRouter } from "./routers/contabil";
+import { dashboardRouter } from "./routers/dashboard";
+import { workflowRouter } from "./routers/workflow";
+import { relatoriosRouter } from "./routers/relatorios";
+import { getDb } from "./db";
+import { govpatriUsers } from "../drizzle/schema";
+import { eq } from "drizzle-orm";
 
 export const appRouter = router({
-    // if you need to use socket.io, read and register route in server/_core/index.ts, all api should start with '/api/' so that the gateway can route correctly
   system: systemRouter,
   auth: router({
     me: publicProcedure.query(opts => opts.ctx.user),
     logout: publicProcedure.mutation(({ ctx }) => {
       const cookieOptions = getSessionCookieOptions(ctx.req);
       ctx.res.clearCookie(COOKIE_NAME, { ...cookieOptions, maxAge: -1 });
-      return {
-        success: true,
-      } as const;
+      return { success: true } as const;
+    }),
+    meGovpatri: protectedProcedure.query(async ({ ctx }) => {
+      const db = await getDb();
+      if (!db) return null;
+      const result = await db.select().from(govpatriUsers).where(eq(govpatriUsers.userId, ctx.user.id)).limit(1);
+      return result[0] ?? null;
     }),
   }),
-
-  // TODO: add feature routers here, e.g.
-  // todo: router({
-  //   list: protectedProcedure.query(({ ctx }) =>
-  //     db.getUserTodos(ctx.user.id)
-  //   ),
-  // }),
+  transversal: transversalRouter,
+  usuarios: usuariosRouter,
+  bensMoveis: bensMoveisTrpcRouter,
+  almoxarifado: almoxarifadoRouter,
+  bensImoveis: bensImoveisRouter,
+  contabil: contabilRouter,
+  dashboard: dashboardRouter,
+  workflow: workflowRouter,
+  relatorios: relatoriosRouter,
 });
 
 export type AppRouter = typeof appRouter;
