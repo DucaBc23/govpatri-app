@@ -408,3 +408,36 @@ export const workflowDecisoes = mysqlTable("workflow_decisoes", {
   justificativa: text("justificativa"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// MÓDULO 10 — INVENTÁRIO CÍCLICO
+// ═══════════════════════════════════════════════════════════════════════════════
+export const inventarios = mysqlTable("inventarios", {
+  id: int("id").autoincrement().primaryKey(),
+  ugId: int("ugId").notNull(),
+  nome: varchar("nome", { length: 255 }).notNull(),
+  dataInicio: date("dataInicio").notNull(),
+  dataFim: date("dataFim"),
+  situacao: mysqlEnum("situacao", ["aberto", "em_coleta", "concluido", "cancelado"]).default("aberto").notNull(),
+  responsavelId: int("responsavelId").notNull(),
+  totalBens: int("totalBens").default(0).notNull(),
+  totalColetados: int("totalColetados").default(0).notNull(),
+  totalDivergencias: int("totalDivergencias").default(0).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export const inventarioColetas = mysqlTable("inventario_coletas", {
+  id: int("id").autoincrement().primaryKey(),
+  inventarioId: int("inventarioId").notNull(),
+  bemId: int("bemId").notNull(),
+  situacaoEncontrada: mysqlEnum("situacaoEncontrada", ["encontrado", "nao_encontrado", "divergencia_localizacao", "divergencia_estado"]).notNull(),
+  localizacaoEncontrada: varchar("localizacaoEncontrada", { length: 255 }),
+  observacao: text("observacao"),
+  coletadoPorId: int("coletadoPorId").notNull(),
+  metodoColeta: mysqlEnum("metodoColeta", ["qrcode", "manual"]).default("manual").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (t) => [uniqueIndex("inventario_coleta_bem_idx").on(t.inventarioId, t.bemId)]);
+
+export type Inventario = typeof inventarios.$inferSelect;
+export type InventarioColeta = typeof inventarioColetas.$inferSelect;

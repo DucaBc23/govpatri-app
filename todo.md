@@ -92,3 +92,16 @@
 - [x] App.tsx com todas as rotas (13 rotas)
 - [x] GovLayout com sidebar hierárquica por módulo
 - [x] Testes vitest — auth.logout passando
+
+## Próximos Passos
+- [x] Seed de dados iniciais: Órgão padrão, UG padrão, classes de bens PCASP
+- [x] Router: endpoint de seed via tRPC (admin only)
+- [x] Página: botão "Inicializar dados" no Dashboard para admin
+- [x] Instalar pdfkit ou similar no servidor para geração de PDF
+- [x] Router: endpoint de geração de Termo de Responsabilidade em PDF
+- [x] Página: botão "Emitir Termo" na listagem de Bens Móveis
+- [x] Instalar qrcode no servidor para geração de QR Code
+- [x] Schema: tabelas inventarios e inventario_coletas
+- [x] Router: criar inventário, registrar coleta, gerar divergências
+- [x] Página: módulo de Inventário com QR Code imprimível por bem
+- [x] Página: tela de coleta de inventário (scan/manual)

@@ -1,7 +1,7 @@
 import { COOKIE_NAME } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
-import { protectedProcedure, publicProcedure, router } from "./_core/trpc";
+import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
 import { transversalRouter } from "./routers/transversal";
 import { usuariosRouter } from "./routers/usuarios";
 import { bensMoveisTrpcRouter } from "./routers/bensMoveis";
@@ -11,6 +11,9 @@ import { contabilRouter } from "./routers/contabil";
 import { dashboardRouter } from "./routers/dashboard";
 import { workflowRouter } from "./routers/workflow";
 import { relatoriosRouter } from "./routers/relatorios";
+import { seedRouter } from "./routers/seed";
+import { inventarioRouter } from "./routers/inventario";
+import { termosPdfRouter } from "./routers/termosPdf";
 import { getDb } from "./db";
 import { govpatriUsers } from "../drizzle/schema";
 import { eq } from "drizzle-orm";
@@ -27,7 +30,8 @@ export const appRouter = router({
     meGovpatri: protectedProcedure.query(async ({ ctx }) => {
       const db = await getDb();
       if (!db) return null;
-      const result = await db.select().from(govpatriUsers).where(eq(govpatriUsers.userId, ctx.user.id)).limit(1);
+      const result = await db.select().from(govpatriUsers)
+        .where(eq(govpatriUsers.userId, ctx.user.id)).limit(1);
       return result[0] ?? null;
     }),
   }),
@@ -40,6 +44,9 @@ export const appRouter = router({
   dashboard: dashboardRouter,
   workflow: workflowRouter,
   relatorios: relatoriosRouter,
+  seed: seedRouter,
+  inventario: inventarioRouter,
+  termosPdf: termosPdfRouter,
 });
 
 export type AppRouter = typeof appRouter;

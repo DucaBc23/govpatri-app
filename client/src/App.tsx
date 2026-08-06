@@ -17,6 +17,7 @@ import Contabil from "./pages/Contabil";
 import Workflow from "./pages/Workflow";
 import Relatorios from "./pages/Relatorios";
 import AuditTrail from "./pages/AuditTrail";
+import Inventario from "./pages/Inventario";
 
 function AppRoutes() {
   return (
@@ -35,6 +36,7 @@ function AppRoutes() {
         <Route path="/workflow" component={Workflow} />
         <Route path="/relatorios" component={Relatorios} />
         <Route path="/auditoria" component={AuditTrail} />
+        <Route path="/inventario" component={Inventario} />
         <Route component={NotFound} />
       </Switch>
     </GovLayout>

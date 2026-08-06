@@ -31,7 +31,13 @@ const navItems: NavItem[] = [
     ],
   },
   { label: "Usuários", href: "/usuarios", icon: <Users size={18} /> },
-  { label: "Bens Móveis", href: "/bens-moveis", icon: <Package size={18} /> },
+  {
+    label: "Bens Móveis", icon: <Package size={18} />,
+    children: [
+      { label: "Cadastro e Tombamento", href: "/bens-moveis" },
+      { label: "Inventário Cíclico", href: "/inventario" },
+    ],
+  },
   { label: "Almoxarifado", href: "/almoxarifado", icon: <Warehouse size={18} /> },
   { label: "Bens Imóveis", href: "/bens-imoveis", icon: <MapPin size={18} /> },
   { label: "Camada Contábil", href: "/contabil", icon: <BookOpen size={18} /> },
@@ -236,4 +242,3 @@ export default function GovLayout({ children }: { children: React.ReactNode }) {
     </div>
   );
 }
-

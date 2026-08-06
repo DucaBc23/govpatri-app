@@ -8,8 +8,15 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, Package, FileText, Wrench } from "lucide-react";
+import { Plus, FileText } from "lucide-react";
 import { toast } from "sonner";
+
+function downloadPdf(base64: string, filename: string) {
+  const link = document.createElement("a");
+  link.href = `data:application/pdf;base64,${base64}`;
+  link.download = filename;
+  link.click();
+}
 
 const situacaoColor: Record<string, string> = {
   ativo: "bg-green-100 text-green-700",
@@ -24,6 +31,10 @@ export default function BensMoveis() {
   const { data: classes = [] } = trpc.bensMoveis.classes.list.useQuery();
   const { data: ugs = [] } = trpc.transversal.ugs.list.useQuery();
   const createMut = trpc.bensMoveis.create.useMutation({ onSuccess: (d) => { refetch(); setOpen(false); toast.success(`Bem incorporado — Tombamento: ${d.numeroTombamento}`); } });
+  const termoMut = trpc.termosPdf.emitir.useMutation({
+    onSuccess: (d) => { downloadPdf(d.pdfBase64, d.filename); toast.success(`Termo ${d.numero} gerado`); },
+    onError: (e) => toast.error(e.message),
+  });
 
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState({ classeId: 0, ugId: 0, descricao: "", marca: "", modelo: "", numeroSerie: "", valorAquisicao: "", dataAquisicao: "" });
@@ -61,7 +72,7 @@ export default function BensMoveis() {
       <div className="border rounded-lg overflow-hidden bg-card">
         <Table>
           <TableHeader>
-            <TableRow><TableHead>Tombamento</TableHead><TableHead>Descrição</TableHead><TableHead>Marca/Modelo</TableHead><TableHead>Valor Atual</TableHead><TableHead>Situação</TableHead></TableRow>
+            <TableRow><TableHead>Tombamento</TableHead><TableHead>Descrição</TableHead><TableHead>Marca/Modelo</TableHead><TableHead>Valor Atual</TableHead><TableHead>Situação</TableHead><TableHead className="w-24"></TableHead></TableRow>
           </TableHeader>
           <TableBody>
             {bens.length === 0 && <TableRow><TableCell colSpan={5} className="text-center py-8 text-muted-foreground">Nenhum bem cadastrado</TableCell></TableRow>}
@@ -72,6 +83,11 @@ export default function BensMoveis() {
                 <TableCell className="text-sm text-muted-foreground">{[b.marca, b.modelo].filter(Boolean).join(" / ") || "—"}</TableCell>
                 <TableCell className="font-medium">R$ {parseFloat(String(b.valorAtual ?? b.valorAquisicao)).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</TableCell>
                 <TableCell><span className={`px-2 py-0.5 rounded-full text-xs font-medium ${situacaoColor[b.situacao] ?? ""}`}>{b.situacao.replace("_", " ")}</span></TableCell>
+                <TableCell>
+                  <Button size="sm" variant="ghost" onClick={() => termoMut.mutate({ bemId: b.id })} disabled={termoMut.isPending}>
+                    <FileText size={14} className="mr-1" />Termo
+                  </Button>
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>

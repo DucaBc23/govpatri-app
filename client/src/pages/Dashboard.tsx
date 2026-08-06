@@ -1,8 +1,10 @@
 import { trpc } from "@/lib/trpc";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Package, MapPin, DollarSign, AlertTriangle, TrendingUp, CheckCircle, XCircle, Clock } from "lucide-react";
+import { Package, MapPin, DollarSign, AlertTriangle, TrendingUp, CheckCircle, Database } from "lucide-react";
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, PieChart, Pie, Cell } from "recharts";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 
 function KpiCard({ title, value, sub, icon, color }: { title: string; value: string | number; sub?: string; icon: React.ReactNode; color: string }) {
   return (
@@ -47,6 +49,10 @@ export default function Dashboard() {
   const { data: kpis } = trpc.dashboard.kpis.useQuery();
   const { data: isp } = trpc.dashboard.isp.useQuery({ ugId: 1 });
   const { data: alertas } = trpc.dashboard.alertas.useQuery();
+  const seedMut = trpc.seed.inicializar.useMutation({
+    onSuccess: (d) => toast.success(d.mensagem),
+    onError: (e) => toast.error(e.message),
+  });
 
   const valorFormatado = kpis?.valorPatrimonial
     ? `R$ ${parseFloat(kpis.valorPatrimonial).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`
@@ -62,6 +68,19 @@ export default function Dashboard() {
       <div>
         <h1 className="text-2xl font-bold text-foreground">Dashboard Patrimonial</h1>
         <p className="text-muted-foreground text-sm mt-1">Visão consolidada do patrimônio público</p>
+      </div>
+      {(kpis?.totalBensMoveis === 0 && kpis?.totalBensImoveis === 0) && (
+        <div className="bg-blue-50 border border-blue-200 rounded-lg px-4 py-3 flex items-center justify-between">
+          <div className="flex items-center gap-2 text-blue-700 text-sm">
+            <Database size={16} />
+            <span>Sistema sem dados. Clique para inicializar com Órgão, UG e classes PCASP padrão.</span>
+          </div>
+          <Button size="sm" onClick={() => seedMut.mutate()} disabled={seedMut.isPending}>
+            {seedMut.isPending ? "Inicializando..." : "Inicializar Dados"}
+          </Button>
+        </div>
+      )}
+      <div>
       </div>
 
       {/* KPIs */}
