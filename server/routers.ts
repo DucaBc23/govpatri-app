@@ -18,6 +18,7 @@ import { seedDemoRouter } from "./routers/seedDemo";
 import { getDb } from "./db";
 import { govpatriUsers } from "../drizzle/schema";
 import { eq } from "drizzle-orm";
+import { authLocalRouter } from "./routers/authLocal";
 
 export const appRouter = router({
   system: systemRouter,
@@ -28,6 +29,9 @@ export const appRouter = router({
       ctx.res.clearCookie(COOKIE_NAME, { ...cookieOptions, maxAge: -1 });
       return { success: true } as const;
     }),
+    login: authLocalRouter.login,
+    criarUsuario: authLocalRouter.criarUsuario,
+    alterarSenha: authLocalRouter.alterarSenha,
     meGovpatri: protectedProcedure.query(async ({ ctx }) => {
       const db = await getDb();
       if (!db) return null;
