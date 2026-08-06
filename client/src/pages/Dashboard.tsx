@@ -53,6 +53,13 @@ export default function Dashboard() {
     onSuccess: (d) => toast.success(d.mensagem),
     onError: (e) => toast.error(e.message),
   });
+  const demoPop = trpc.seedDemo.popular.useMutation({
+    onSuccess: (d) => {
+      toast.success(`Dados simulados criados! ${d.resumo.bensMoveis} bens móveis, ${d.resumo.bensImoveis} imóveis, ${d.resumo.itensAlmox} itens de almoxarifado.`);
+      window.location.reload();
+    },
+    onError: (e) => toast.error(e.message),
+  });
 
   const valorFormatado = kpis?.valorPatrimonial
     ? `R$ ${parseFloat(kpis.valorPatrimonial).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`
@@ -75,9 +82,14 @@ export default function Dashboard() {
             <Database size={16} />
             <span>Sistema sem dados. Clique para inicializar com Órgão, UG e classes PCASP padrão.</span>
           </div>
-          <Button size="sm" onClick={() => seedMut.mutate()} disabled={seedMut.isPending}>
-            {seedMut.isPending ? "Inicializando..." : "Inicializar Dados"}
-          </Button>
+          <div className="flex gap-2">
+            <Button size="sm" variant="outline" onClick={() => seedMut.mutate()} disabled={seedMut.isPending || demoPop.isPending}>
+              {seedMut.isPending ? "Inicializando..." : "Inicializar Básico"}
+            </Button>
+            <Button size="sm" onClick={() => demoPop.mutate()} disabled={demoPop.isPending || seedMut.isPending}>
+              {demoPop.isPending ? "Populando..." : "Popular com Dados Demo"}
+            </Button>
+          </div>
         </div>
       )}
       <div>

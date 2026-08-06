@@ -14,6 +14,7 @@ import { relatoriosRouter } from "./routers/relatorios";
 import { seedRouter } from "./routers/seed";
 import { inventarioRouter } from "./routers/inventario";
 import { termosPdfRouter } from "./routers/termosPdf";
+import { seedDemoRouter } from "./routers/seedDemo";
 import { getDb } from "./db";
 import { govpatriUsers } from "../drizzle/schema";
 import { eq } from "drizzle-orm";
@@ -47,6 +48,7 @@ export const appRouter = router({
   seed: seedRouter,
   inventario: inventarioRouter,
   termosPdf: termosPdfRouter,
+  seedDemo: seedDemoRouter,
 });
 
 export type AppRouter = typeof appRouter;
