@@ -100,7 +100,29 @@ export const bensMoveisTrpcRouter = router({
   create: protectedProcedure.input(bemSchema).mutation(async ({ input, ctx }) => {
     const db = await getDb();
     if (!db) throw new Error("DB indisponível");
+
+    // VALIDAÇÃO 1: Impedir tombamento duplicado na mesma UG
+    // O tombamento é gerado automaticamente, mas verificamos race condition
+    // e garantimos registro de auditoria quando o bloqueio ocorre.
     const numeroTombamento = await getProximoTombamento(input.ugId);
+    const [tombDuplicado] = await db
+      .select({ id: bensMoveisTable.id })
+      .from(bensMoveisTable)
+      .where(and(eq(bensMoveisTable.numeroTombamento, numeroTombamento), eq(bensMoveisTable.ugId, input.ugId)))
+      .limit(1);
+    if (tombDuplicado) {
+      await registrarAuditoria({
+        userId: ctx.user.id,
+        acao: "BLOQUEIO_TOMBAMENTO_DUPLICADO",
+        entidade: "bens_moveis",
+        dadosDepois: { ugId: input.ugId, tombamentoConflitante: numeroTombamento, motivo: "tombamento já existe na UG" },
+      });
+      throw new TRPCError({
+        code: "CONFLICT",
+        message: `Tombamento ${numeroTombamento} já existe na UG ${input.ugId}. Operação bloqueada e registrada em auditoria.`,
+      });
+    }
+
     const [r] = await db.insert(bensMoveisTable).values({
       classeId: input.classeId, ugId: input.ugId, descricao: input.descricao,
       marca: input.marca, modelo: input.modelo, numeroSerie: input.numeroSerie,
@@ -155,6 +177,29 @@ export const bensMoveisTrpcRouter = router({
     })).mutation(async ({ input, ctx }) => {
       const db = await getDb();
       if (!db) throw new Error("DB indisponível");
+
+      // VALIDAÇÃO 3: Impedir baixa de bem já baixado ou alienado
+      if (input.tipo === "baixa") {
+        const [bemAtual] = await db
+          .select({ situacao: bensMoveisTable.situacao })
+          .from(bensMoveisTable)
+          .where(eq(bensMoveisTable.id, input.bemId))
+          .limit(1);
+        if (bemAtual && (bemAtual.situacao === "baixado" || bemAtual.situacao === "inservivel")) {
+          await registrarAuditoria({
+            userId: ctx.user.id,
+            acao: "BLOQUEIO_BAIXA_BEM_JA_BAIXADO",
+            entidade: "bens_moveis",
+            entidadeId: input.bemId,
+            dadosDepois: { situacaoAtual: bemAtual.situacao, motivo: "bem já está baixado ou inservível" },
+          });
+          throw new TRPCError({
+            code: "PRECONDITION_FAILED",
+            message: `Bem ${input.bemId} já está com situação '${bemAtual.situacao}'. Baixa bloqueada e registrada em auditoria.`,
+          });
+        }
+      }
+
       const [r] = await db.insert(movimentacoesBens).values({
         bemId: input.bemId, tipo: input.tipo,
         ugDestinoId: input.ugDestinoId, uaDestinoId: input.uaDestinoId,
@@ -232,3 +277,4 @@ export const bensMoveisTrpcRouter = router({
     }),
   }),
 });
+import { TRPCError } from "@trpc/server";

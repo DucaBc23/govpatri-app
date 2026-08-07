@@ -15,14 +15,16 @@ import { seedRouter } from "./routers/seed";
 import { inventarioRouter } from "./routers/inventario";
 import { termosPdfRouter } from "./routers/termosPdf";
 import { seedDemoRouter } from "./routers/seedDemo";
-import { getDb } from "./db";
-import { govpatriUsers } from "../drizzle/schema";
-import { eq } from "drizzle-orm";
 import { authLocalRouter } from "./routers/authLocal";
 import { manutencoesRouter } from "./routers/manutencoes";
 import { termosResponsabilidadeRouter } from "./routers/termosResponsabilidade";
 import { cessoesImoveisRouter } from "./routers/cessoesImoveis";
 import { requisicoesAlmoxRouter } from "./routers/requisicoesAlmox";
+import { relatoriosContabeisRouter } from "./routers/relatoriosContabeis";
+import { mscRouter } from "./routers/msc";
+import { getDb } from "./db";
+import { govpatriUsers } from "../drizzle/schema";
+import { eq } from "drizzle-orm";
 
 export const appRouter = router({
   system: systemRouter,
@@ -33,11 +35,11 @@ export const appRouter = router({
       ctx.res.clearCookie(COOKIE_NAME, { ...cookieOptions, maxAge: -1 });
       return { success: true } as const;
     }),
-  login: authLocalRouter.login,
-  criarUsuario: authLocalRouter.criarUsuario,
-  alterarSenha: authLocalRouter.alterarSenha,
-  redefinirSenhaObrigatoria: authLocalRouter.redefinirSenhaObrigatoria,
-  meGovpatri: protectedProcedure.query(async ({ ctx }) => {
+    login: authLocalRouter.login,
+    criarUsuario: authLocalRouter.criarUsuario,
+    alterarSenha: authLocalRouter.alterarSenha,
+    redefinirSenhaObrigatoria: authLocalRouter.redefinirSenhaObrigatoria,
+    meGovpatri: protectedProcedure.query(async ({ ctx }) => {
       const db = await getDb();
       if (!db) return null;
       const result = await db.select().from(govpatriUsers)
@@ -58,6 +60,8 @@ export const appRouter = router({
   dashboard: dashboardRouter,
   workflow: workflowRouter,
   relatorios: relatoriosRouter,
+  relatoriosContabeis: relatoriosContabeisRouter,
+  msc: mscRouter,
   seed: seedRouter,
   inventario: inventarioRouter,
   termosPdf: termosPdfRouter,

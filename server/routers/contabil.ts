@@ -71,6 +71,50 @@ export const contabilRouter = router({
     })).mutation(async ({ input, ctx }) => {
       const db = await getDb();
       if (!db) throw new Error("DB indisponível");
+
+      // VALIDAÇÃO 2: Impedir evento com conta de débito ou crédito inexistente no plano de contas
+      const [contaDebito] = await db
+        .select({ id: planoContas.id, aceitaLancamento: planoContas.aceitaLancamento })
+        .from(planoContas)
+        .where(and(eq(planoContas.id, input.contaDebitoId), eq(planoContas.isActive, true)))
+        .limit(1);
+      if (!contaDebito || !contaDebito.aceitaLancamento) {
+        const motivo = !contaDebito
+          ? "conta de débito não encontrada no plano de contas"
+          : "conta de débito não aceita lançamento direto";
+        await registrarAuditoria({
+          userId: ctx.user.id,
+          acao: "BLOQUEIO_CONTA_DEBITO_INVALIDA",
+          entidade: "eventos_patrimoniais",
+          dadosDepois: { contaDebitoId: input.contaDebitoId, motivo },
+        });
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: `Conta de débito ${input.contaDebitoId}: ${motivo}. Evento bloqueado e registrado em auditoria.`,
+        });
+      }
+
+      const [contaCredito] = await db
+        .select({ id: planoContas.id, aceitaLancamento: planoContas.aceitaLancamento })
+        .from(planoContas)
+        .where(and(eq(planoContas.id, input.contaCreditoId), eq(planoContas.isActive, true)))
+        .limit(1);
+      if (!contaCredito || !contaCredito.aceitaLancamento) {
+        const motivo = !contaCredito
+          ? "conta de crédito não encontrada no plano de contas"
+          : "conta de crédito não aceita lançamento direto";
+        await registrarAuditoria({
+          userId: ctx.user.id,
+          acao: "BLOQUEIO_CONTA_CREDITO_INVALIDA",
+          entidade: "eventos_patrimoniais",
+          dadosDepois: { contaCreditoId: input.contaCreditoId, motivo },
+        });
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: `Conta de crédito ${input.contaCreditoId}: ${motivo}. Evento bloqueado e registrado em auditoria.`,
+        });
+      }
+
       const [r] = await db.insert(eventosPatrimoniais).values({ ...input, createdByUserId: ctx.user.id });
       await registrarAuditoria({ userId: ctx.user.id, acao: `EVENTO_${input.tipo.toUpperCase()}`, entidade: "eventos_patrimoniais", entidadeId: r.insertId, dadosDepois: input });
       return { id: r.insertId };
@@ -120,3 +164,4 @@ export const contabilRouter = router({
     }),
   }),
 });
+import { TRPCError } from "@trpc/server";
