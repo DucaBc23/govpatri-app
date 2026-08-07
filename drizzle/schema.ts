@@ -442,3 +442,58 @@ export const inventarioColetas = mysqlTable("inventario_coletas", {
 
 export type Inventario = typeof inventarios.$inferSelect;
 export type InventarioColeta = typeof inventarioColetas.$inferSelect;
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// MÓDULO 11 — ALERTAS DE AUDITORIA PREVENTIVA
+// ═══════════════════════════════════════════════════════════════════════════════
+export const alertasAuditoria = mysqlTable("alertas_auditoria", {
+  id: int("id").autoincrement().primaryKey(),
+  ugId: int("ugId").notNull(),
+  tipo: mysqlEnum("tipo", [
+    "termo_pendente", "divergencia_recorrente", "pendencia_dominial",
+    "cessao_vencida", "reavaliacao_vencida", "inconsistencia_contabil",
+    "estoque_minimo", "validade_proxima", "manutencao_vencida",
+  ]).notNull(),
+  entidade: varchar("entidade", { length: 100 }).notNull(), // ex: "bens_moveis", "bens_imoveis"
+  entidadeId: int("entidadeId").notNull(),
+  criticidade: mysqlEnum("criticidade", ["alta", "media", "baixa"]).notNull(),
+  status: mysqlEnum("status", ["aberto", "em_tratamento", "resolvido"]).default("aberto").notNull(),
+  descricao: text("descricao").notNull(),
+  resolvidoPorNormalizacao: boolean("resolvidoPorNormalizacao").default(false).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (t) => [uniqueIndex("alertas_tipo_entidade_idx").on(t.tipo, t.entidade, t.entidadeId, t.ugId)]);
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// MÓDULO 12 — ÍNDICE DE SAÚDE PATRIMONIAL (ISP)
+// ═══════════════════════════════════════════════════════════════════════════════
+export const indiceSaudePatrimonial = mysqlTable("indice_saude_patrimonial", {
+  id: int("id").autoincrement().primaryKey(),
+  ugId: int("ugId").notNull(),
+  competencia: varchar("competencia", { length: 7 }).notNull(), // YYYY-MM
+  completudeCadastral: decimal("completudeCadastral", { precision: 5, scale: 2 }),
+  aderenciaDocumental: decimal("aderenciaDocumental", { precision: 5, scale: 2 }),
+  tempestividadeInventario: decimal("tempestividadeInventario", { precision: 5, scale: 2 }),
+  tratamentoDivergencias: decimal("tratamentoDivergencias", { precision: 5, scale: 2 }),
+  regularidadeDominial: decimal("regularidadeDominial", { precision: 5, scale: 2 }),
+  regularidadeAvaliacoes: decimal("regularidadeAvaliacoes", { precision: 5, scale: 2 }),
+  indiceGeral: decimal("indiceGeral", { precision: 5, scale: 2 }).notNull(),
+  totalBensAtivos: int("totalBensAtivos").default(0).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (t) => [uniqueIndex("isp_ug_competencia_idx").on(t.ugId, t.competencia)]);
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// MÓDULO 13 — CONFIGURAÇÕES DO SISTEMA
+// ═══════════════════════════════════════════════════════════════════════════════
+export const configuracoesSistema = mysqlTable("configuracoes_sistema", {
+  id: int("id").autoincrement().primaryKey(),
+  chave: varchar("chave", { length: 100 }).notNull(),
+  valor: varchar("valor", { length: 500 }).notNull(),
+  descricao: text("descricao"),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (t) => [uniqueIndex("config_chave_idx").on(t.chave)]);
+
+export type AlertaAuditoria = typeof alertasAuditoria.$inferSelect;
+export type IndiceSaudePatrimonial = typeof indiceSaudePatrimonial.$inferSelect;
+export type ConfiguracaoSistema = typeof configuracoesSistema.$inferSelect;
