@@ -11,6 +11,7 @@ export const users = mysqlTable("users", {
   email: varchar("email", { length: 320 }),
   passwordHash: varchar("passwordHash", { length: 255 }),
   loginMethod: varchar("loginMethod", { length: 64 }),
+  mustChangePassword: boolean("mustChangePassword").default(false).notNull(),
   role: mysqlEnum("role", ["user", "admin"]).default("user").notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
@@ -94,6 +95,7 @@ export const classesBens = mysqlTable("classes_bens", {
   vidaUtilAnos: int("vidaUtilAnos"),
   taxaDepreciacaoAnual: decimal("taxaDepreciacaoAnual", { precision: 5, scale: 4 }),
   valorResidualPerc: decimal("valorResidualPerc", { precision: 5, scale: 4 }),
+  metodoDepreciacao: mysqlEnum("metodoDepreciacao", ["linear", "soma_digitos", "unidades_produzidas"]).default("linear").notNull(),
   isActive: boolean("isActive").default(true).notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 }, (t) => [uniqueIndex("classes_bens_codigo_idx").on(t.codigo)]);

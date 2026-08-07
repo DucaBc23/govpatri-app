@@ -36,6 +36,20 @@
       "when": 1786115324383,
       "tag": "0004_great_cyclops",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "5",
+      "when": 1786131371620,
+      "tag": "0005_familiar_zodiak",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "5",
+      "when": 1786131552222,
+      "tag": "0006_dusty_unicorn",
+      "breakpoints": true
     }
   ]
 }

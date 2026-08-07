@@ -23,9 +23,10 @@ import AuditTrail from "./pages/AuditTrail";
 import Inventario from "./pages/Inventario";
 import GovLayout from "./components/GovLayout";
 import NotFound from "./pages/NotFound";
+import ForceChangePassword from "./pages/ForceChangePassword";
 
 function ProtectedRoutes() {
-  const { isAuthenticated, loading } = useAuth();
+  const { isAuthenticated, loading, user } = useAuth();
   const [location, navigate] = useLocation();
 
   useEffect(() => {
@@ -33,6 +34,13 @@ function ProtectedRoutes() {
       navigate("/login");
     }
   }, [loading, isAuthenticated, location, navigate]);
+
+  // Redirecionar para troca obrigatória de senha
+  useEffect(() => {
+    if (!loading && isAuthenticated && (user as any)?.mustChangePassword && location !== "/trocar-senha") {
+      navigate("/trocar-senha");
+    }
+  }, [loading, isAuthenticated, user, location, navigate]);
 
   if (loading) {
     return (
@@ -48,10 +56,11 @@ function ProtectedRoutes() {
   if (!isAuthenticated) return null;
 
   return (
-    <GovLayout>
-      <Switch>
-        <Route path="/" component={Dashboard} />
-        <Route path="/orgaos" component={Orgaos} />
+      <GovLayout>
+        <Switch>
+          <Route path="/" component={Dashboard} />
+          <Route path="/trocar-senha" component={ForceChangePassword} />
+          <Route path="/orgaos" component={Orgaos} />
         <Route path="/unidades-gestoras" component={UnidadesGestoras} />
         <Route path="/unidades-administrativas" component={UnidadesAdministrativas} />
         <Route path="/usuarios" component={Usuarios} />

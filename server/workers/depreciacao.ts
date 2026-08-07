@@ -91,6 +91,7 @@ export async function executarDepreciacao(entrada: EntradaDepreciacao): Promise<
     taxaDepreciacaoAnual: classesBens.taxaDepreciacaoAnual,
     valorResidualPerc: classesBens.valorResidualPerc,
     contaPcasp: classesBens.contaPcasp,
+    metodoDepreciacao: classesBens.metodoDepreciacao,
   }).from(bensMoveisTable)
     .leftJoin(classesBens, eq(bensMoveisTable.classeId, classesBens.id))
     .where(and(
@@ -116,6 +117,19 @@ export async function executarDepreciacao(entrada: EntradaDepreciacao): Promise<
         resultado.erros.push({ entidade: "bens_moveis", entidadeId: bem.id, motivo: "valorAquisicao ausente ou zero" });
         continue;
       }
+
+      // Método não implementado: nunca aplicar linear como substituto
+      const metodo = bem.metodoDepreciacao ?? "linear";
+      if (metodo !== "linear") {
+        resultado.naoElegiveis++;
+        resultado.erros.push({
+          entidade: "bens_moveis",
+          entidadeId: bem.id,
+          motivo: `método de depreciação não implementado: ${metodo}`,
+        });
+        continue;
+      }
+
       if (!bem.vidaUtilAnos || !bem.taxaDepreciacaoAnual) {
         resultado.naoElegiveis++;
         resultado.erros.push({ entidade: "bens_moveis", entidadeId: bem.id, motivo: "Classe sem vidaUtilAnos ou taxaDepreciacaoAnual" });

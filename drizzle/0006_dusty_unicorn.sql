@@ -1,0 +1,1 @@
+ALTER TABLE `classes_bens` ADD `metodoDepreciacao` enum('linear','soma_digitos','unidades_produzidas') DEFAULT 'linear' NOT NULL;

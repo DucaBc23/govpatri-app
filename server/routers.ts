@@ -33,10 +33,11 @@ export const appRouter = router({
       ctx.res.clearCookie(COOKIE_NAME, { ...cookieOptions, maxAge: -1 });
       return { success: true } as const;
     }),
-    login: authLocalRouter.login,
-    criarUsuario: authLocalRouter.criarUsuario,
-    alterarSenha: authLocalRouter.alterarSenha,
-    meGovpatri: protectedProcedure.query(async ({ ctx }) => {
+  login: authLocalRouter.login,
+  criarUsuario: authLocalRouter.criarUsuario,
+  alterarSenha: authLocalRouter.alterarSenha,
+  redefinirSenhaObrigatoria: authLocalRouter.redefinirSenhaObrigatoria,
+  meGovpatri: protectedProcedure.query(async ({ ctx }) => {
       const db = await getDb();
       if (!db) return null;
       const result = await db.select().from(govpatriUsers)

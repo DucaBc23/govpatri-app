@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { TRPCError } from "@trpc/server";
 import { publicProcedure, protectedProcedure, router } from "../_core/trpc";
 import { getDb } from "../db";
 import { users, govpatriUsers } from "../../drizzle/schema";
@@ -62,12 +63,13 @@ export const authLocalRouter = router({
           id: user.id,
           name: user.name,
           email: user.email,
-          role: user.role,
-          perfil: govUser?.perfil ?? "operador",
-          ugId: govUser?.ugId,
-        },
-      };
-    }),
+        role: user.role,
+        perfil: govUser?.perfil ?? "operador",
+        ugId: govUser?.ugId,
+        mustChangePassword: user.mustChangePassword ?? false,
+      },
+    };
+  }),
 
   logout: publicProcedure.mutation(({ ctx }) => {
     const cookieOptions = getSessionCookieOptions(ctx.req);
@@ -138,6 +140,24 @@ export const authLocalRouter = router({
       if (!valid) throw new Error("Senha atual incorreta");
       const passwordHash = await bcrypt.hash(input.novaSenha, 12);
       await db.update(users).set({ passwordHash }).where(eq(users.id, ctx.user.id));
+      return { success: true };
+    }),
+
+  // Redefinir senha obrigatória (fluxo mustChangePassword — não exige senha atual)
+  redefinirSenhaObrigatoria: protectedProcedure
+    .input(z.object({ novaSenha: z.string().min(8, "Mínimo 8 caracteres") }))
+    .mutation(async ({ input, ctx }) => {
+      const db = await getDb();
+      if (!db) throw new Error("DB indisponível");
+      const [user] = await db.select().from(users).where(eq(users.id, ctx.user.id)).limit(1);
+      if (!user) throw new TRPCError({ code: "NOT_FOUND", message: "Usuário não encontrado" });
+      if (!user.mustChangePassword) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Troca de senha não obrigatória para este usuário" });
+      }
+      const passwordHash = await bcrypt.hash(input.novaSenha, 12);
+      await db.update(users)
+        .set({ passwordHash, mustChangePassword: false })
+        .where(eq(users.id, ctx.user.id));
       return { success: true };
     }),
 });
