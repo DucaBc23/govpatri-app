@@ -246,6 +246,100 @@ export const requisicoesItens = mysqlTable("requisicoes_itens", {
   quantidadeAtendida: decimal("quantidadeAtendida", { precision: 12, scale: 3 }),
 });
 
+// Lotes de almoxarifado (rastreio por lote e validade — ALM-002)
+export const almoxLotes = mysqlTable("almox_lotes", {
+  id: int("id").autoincrement().primaryKey(),
+  depositoId: int("depositoId").notNull(),
+  itemId: int("itemId").notNull(),
+  numeroLote: varchar("numeroLote", { length: 60 }).notNull(),
+  dataValidade: date("dataValidade"),
+  dataEntrada: date("dataEntrada").notNull(),
+  quantidadeInicial: decimal("quantidadeInicial", { precision: 12, scale: 3 }).notNull(),
+  quantidadeDisponivel: decimal("quantidadeDisponivel", { precision: 12, scale: 3 }).notNull(),
+  quantidadeQuarentena: decimal("quantidadeQuarentena", { precision: 12, scale: 3 }).default("0").notNull(),
+  valorUnitario: decimal("valorUnitario", { precision: 15, scale: 4 }),
+  movimentacaoOrigemId: int("movimentacaoOrigemId"),
+  situacao: mysqlEnum("situacao", ["disponivel", "quarentena", "esgotado", "vencido"]).default("disponivel").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+// Endereços físicos do almoxarifado (ALM-004)
+export const almoxEnderecos = mysqlTable("almox_enderecos", {
+  id: int("id").autoincrement().primaryKey(),
+  depositoId: int("depositoId").notNull(),
+  rua: varchar("rua", { length: 20 }).notNull(),
+  estante: varchar("estante", { length: 20 }).notNull(),
+  prateleira: varchar("prateleira", { length: 20 }).notNull(),
+  posicao: varchar("posicao", { length: 20 }).notNull(),
+  descricao: varchar("descricao", { length: 100 }),
+  capacidade: decimal("capacidade", { precision: 12, scale: 3 }),
+  isActive: boolean("isActive").default(true).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+// Alocações de lotes em endereços físicos (ALM-004)
+export const almoxAlocacoes = mysqlTable("almox_alocacoes", {
+  id: int("id").autoincrement().primaryKey(),
+  loteId: int("loteId").notNull(),
+  enderecoId: int("enderecoId").notNull(),
+  quantidade: decimal("quantidade", { precision: 12, scale: 3 }).notNull(),
+  motivo: varchar("motivo", { length: 255 }),
+  alocadoPorId: int("alocadoPorId").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+// Devoluções ao estoque (ALM-008)
+export const almoxDevolucoes = mysqlTable("almox_devolucoes", {
+  id: int("id").autoincrement().primaryKey(),
+  requisicaoItemId: int("requisicaoItemId").notNull(),
+  loteOrigemId: int("loteOrigemId").notNull(),
+  enderecoDestinoId: int("enderecoDestinoId"),
+  quantidade: decimal("quantidade", { precision: 12, scale: 3 }).notNull(),
+  condicao: mysqlEnum("condicao", ["integro", "avariado", "vencido"]).notNull(),
+  motivo: text("motivo").notNull(),
+  registradoPorId: int("registradoPorId").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+// Baixas de almoxarifado (ALM-010)
+export const almoxBaixas = mysqlTable("almox_baixas", {
+  id: int("id").autoincrement().primaryKey(),
+  loteId: int("loteId").notNull(),
+  depositoId: int("depositoId").notNull(),
+  quantidade: decimal("quantidade", { precision: 12, scale: 3 }).notNull(),
+  motivo: mysqlEnum("motivo", ["vencimento", "avaria", "obsolescencia", "perda"]).notNull(),
+  evidenciaDocRef: varchar("evidenciaDocRef", { length: 255 }),
+  workflowInstanciaId: int("workflowInstanciaId"),
+  eventoContabilId: int("eventoContabilId"),
+  autorizadoPorId: int("autorizadoPorId"),
+  situacao: mysqlEnum("situacao", ["pendente", "autorizada", "executada", "rejeitada"]).default("pendente").notNull(),
+  registradoPorId: int("registradoPorId").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+// Backorder de itens de requisição (ALM-007)
+export const almoxBackorder = mysqlTable("almox_backorder", {
+  id: int("id").autoincrement().primaryKey(),
+  requisicaoItemId: int("requisicaoItemId").notNull(),
+  quantidadePendente: decimal("quantidadePendente", { precision: 12, scale: 3 }).notNull(),
+  situacao: mysqlEnum("situacao", ["pendente", "atendido", "cancelado"]).default("pendente").notNull(),
+  motivoCancelamento: text("motivoCancelamento"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+// Substituições de item em requisição (ALM-007)
+export const almoxSubstituicoes = mysqlTable("almox_substituicoes", {
+  id: int("id").autoincrement().primaryKey(),
+  requisicaoItemId: int("requisicaoItemId").notNull(),
+  itemOriginalId: int("itemOriginalId").notNull(),
+  itemSubstitutoId: int("itemSubstitutoId").notNull(),
+  autorizadorId: int("autorizadorId").notNull(),
+  justificativa: text("justificativa").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
 // ═══════════════════════════════════════════════════════════════════════════════
 // MÓDULO 5 — BENS IMÓVEIS
 // ═══════════════════════════════════════════════════════════════════════════════

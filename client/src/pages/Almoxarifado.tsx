@@ -18,12 +18,12 @@ export default function Almoxarifado() {
   const { data: estoque = [] } = trpc.almoxarifado.estoque.getByDeposito.useQuery({ depositoId: selectedDeposito }, { enabled: selectedDeposito > 0 });
 
   const createItemMut = trpc.almoxarifado.itens.create.useMutation({ onSuccess: () => { refetchItens(); setOpenItem(false); toast.success("Item criado"); } });
-  const movMut = trpc.almoxarifado.movimentacoes.registrar.useMutation({ onSuccess: () => { toast.success("Movimentação registrada"); setOpenMov(false); } });
+  const movMut = trpc.almoxarifado.movimentacoes.registrarEntrada.useMutation({ onSuccess: () => { toast.success("Movimentação registrada"); setOpenMov(false); } });
 
   const [openItem, setOpenItem] = useState(false);
   const [openMov, setOpenMov] = useState(false);
   const [itemForm, setItemForm] = useState({ codigo: "", nome: "", unidadeMedida: "UN", categoria: "", estoqueMinimo: "" });
-  const [movForm, setMovForm] = useState({ depositoId: 0, itemId: 0, tipo: "entrada" as "entrada" | "saida" | "ajuste", quantidade: "", valorUnitario: "" });
+  const [movForm, setMovForm] = useState({ depositoId: 0, itemId: 0, tipoEntrada: "nota_fiscal" as "nota_fiscal" | "romaneio" | "doacao" | "devolucao", quantidade: "", quantidadeConferida: "", valorUnitario: "", documentoRef: "" });
 
   return (
     <div className="space-y-6">
@@ -130,12 +130,12 @@ export default function Almoxarifado() {
               </Select>
             </div>
             <div className="space-y-1"><Label>Tipo</Label>
-              <Select value={movForm.tipo} onValueChange={v => setMovForm(f => ({ ...f, tipo: v as typeof movForm.tipo }))}>
+              <Select value={movForm.tipoEntrada} onValueChange={v => setMovForm(f => ({ ...f, tipoEntrada: v as typeof movForm.tipoEntrada }))}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="entrada">Entrada</SelectItem>
-                  <SelectItem value="saida">Saída</SelectItem>
-                  <SelectItem value="ajuste">Ajuste</SelectItem>
+                  <SelectItem value="nota_fiscal">Nota Fiscal</SelectItem>
+                  <SelectItem value="romaneio">Romaneio</SelectItem>
+                  <SelectItem value="doacao">Doação</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -146,7 +146,7 @@ export default function Almoxarifado() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setOpenMov(false)}>Cancelar</Button>
-            <Button onClick={() => { if (!movForm.depositoId || !movForm.itemId || !movForm.quantidade) return toast.error("Preencha os campos obrigatórios"); movMut.mutate({ depositoId: movForm.depositoId, itemId: movForm.itemId, tipo: movForm.tipo, quantidade: movForm.quantidade, valorUnitario: movForm.valorUnitario || undefined }); }} disabled={movMut.isPending}>Registrar</Button>
+            <Button onClick={() => { if (!movForm.depositoId || !movForm.itemId || !movForm.quantidade) return toast.error("Preencha os campos obrigatórios"); movMut.mutate({ depositoId: movForm.depositoId, itemId: movForm.itemId, tipoEntrada: movForm.tipoEntrada, quantidade: movForm.quantidade, quantidadeConferida: movForm.quantidadeConferida || movForm.quantidade, valorUnitario: movForm.valorUnitario || undefined, documentoRef: movForm.documentoRef || undefined }); }} disabled={movMut.isPending}>Registrar</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

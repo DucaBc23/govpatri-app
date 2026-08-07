@@ -50,6 +50,13 @@
       "when": 1786131552222,
       "tag": "0006_dusty_unicorn",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "5",
+      "when": 1786146128145,
+      "tag": "0007_lovely_jubilee",
+      "breakpoints": true
     }
   ]
 }
