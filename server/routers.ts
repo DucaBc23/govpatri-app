@@ -19,6 +19,10 @@ import { getDb } from "./db";
 import { govpatriUsers } from "../drizzle/schema";
 import { eq } from "drizzle-orm";
 import { authLocalRouter } from "./routers/authLocal";
+import { manutencoesRouter } from "./routers/manutencoes";
+import { termosResponsabilidadeRouter } from "./routers/termosResponsabilidade";
+import { cessoesImoveisRouter } from "./routers/cessoesImoveis";
+import { requisicoesAlmoxRouter } from "./routers/requisicoesAlmox";
 
 export const appRouter = router({
   system: systemRouter,
@@ -40,6 +44,10 @@ export const appRouter = router({
       return result[0] ?? null;
     }),
   }),
+  manutencoes: manutencoesRouter,
+  termosResponsabilidade: termosResponsabilidadeRouter,
+  cessoesImoveis: cessoesImoveisRouter,
+  requisicoesAlmox: requisicoesAlmoxRouter,
   transversal: transversalRouter,
   usuarios: usuariosRouter,
   bensMoveis: bensMoveisTrpcRouter,

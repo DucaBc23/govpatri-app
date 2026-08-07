@@ -13,6 +13,7 @@ import UnidadesAdministrativas from "./pages/UnidadesAdministrativas";
 import Usuarios from "./pages/Usuarios";
 import BensMoveis from "./pages/BensMoveis";
 import DetalhesBem from "./pages/DetalhesBem";
+import Manutencoes from "./pages/Manutencoes";
 import Almoxarifado from "./pages/Almoxarifado";
 import BensImoveis from "./pages/BensImoveis";
 import Contabil from "./pages/Contabil";
@@ -56,6 +57,7 @@ function ProtectedRoutes() {
         <Route path="/usuarios" component={Usuarios} />
         <Route path="/bens-moveis" component={BensMoveis} />
         <Route path="/bens-moveis/:id" component={DetalhesBem} />
+        <Route path="/manutencoes" component={Manutencoes} />
         <Route path="/almoxarifado" component={Almoxarifado} />
         <Route path="/bens-imoveis" component={BensImoveis} />
         <Route path="/contabil" component={Contabil} />
